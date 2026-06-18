@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>내가 쏜다 레이스 🏇</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#3f9a47" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="쏜다레이스" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<style>
+  /* ===== 기본(낮 - 밝은 테마) ===== */
+  :root {
+    --page-bg: radial-gradient(1200px 800px at 50% -12%, #d6f0d8 0%, #9ed7a6 45%, #74c389 100%);
+    --panel-bg: rgba(255,255,255,0.62);
+    --panel-border: rgba(0,0,0,0.10);
+    --text: #14301f;
+    --muted: #51695a;
+    --turf: #57b65c; --turf2: #3f9a47;
+    --lane-bg: rgba(0,0,0,0.13);
+    --row-bg: rgba(255,255,255,0.55);
+    --row-border: rgba(0,0,0,0.08);
+    --input-bg: rgba(0,0,0,0.06);
+    --modal-bg: linear-gradient(160deg, #ffffff, #e9f5ec);
+    --accent: #f4a200;
+    --accent2: #ef476f;
+    --green: #06a777;
+  }
+  body[data-theme="night"] {
+    --page-bg: radial-gradient(1200px 800px at 50% -10%, #1c3a28 0%, #14241a 45%, #0e1a13 100%);
+    --panel-bg: rgba(255,255,255,0.05);
+    --panel-border: rgba(255,255,255,0.09);
+    --text: #f5f5f7;
+    --muted: #9aa4b2;
+    --turf: #2e7d32; --turf2: #256628;
+    --lane-bg: rgba(0,0,0,0.18);
+    --row-bg: rgba(255,255,255,0.05);
+    --row-border: rgba(255,255,255,0.08);
+    --input-bg: rgba(0,0,0,0.25);
+    --modal-bg: linear-gradient(160deg, #1f3a2a, #14241a);
+    --accent: #ffd166;
+  }
+  body[data-theme="sunset"] {
+    --page-bg: radial-gradient(1200px 800px at 50% -10%, #ffb56b 0%, #ff7e7e 42%, #6a4d8c 100%);
+    --panel-bg: rgba(40,20,55,0.34);
+    --panel-border: rgba(255,255,255,0.18);
+    --text: #fff4ec;
+    --muted: #ffd9c7;
+    --turf: #c47a3a; --turf2: #9c5e2c;
+    --lane-bg: rgba(0,0,0,0.22);
+    --row-bg: rgba(255,255,255,0.10);
+    --row-border: rgba(255,255,255,0.16);
+    --input-bg: rgba(0,0,0,0.22);
+    --modal-bg: linear-gradient(160deg, #5a3a6e, #3a2350);
+    --accent: #ffd166;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    background: var(--page-bg); background-attachment: fixed;
+    color: var(--text); min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; overflow-x: hidden; transition: background .4s, color .3s;
+  }
+  .app {
+    width: 100%; max-width: 760px;
+    background: var(--panel-bg); border: 1px solid var(--panel-border);
+    border-radius: 24px; padding: 18px 26px 32px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35); backdrop-filter: blur(10px);
+  }
+  .controls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 4px; }
+  .controls #volSlider {
+    width: 110px; height: 6px; -webkit-appearance: none; appearance: none; cursor: pointer;
+    background: var(--row-border); border-radius: 999px; outline: none; margin-right: 2px;
+  }
+  .controls #volSlider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent2); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .controls #volSlider::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%; background: var(--accent2); border: 2px solid #fff;
+  }
+  .controls button {
+    background: var(--row-bg); border: 1px solid var(--row-border); color: var(--text);
+    font-size: 18px; width: 42px; height: 36px; border-radius: 11px; cursor: pointer; transition: transform .1s;
+  }
+  .controls button:active { transform: scale(0.9); }
+  h1 { font-size: 30px; text-align: center; margin: 2px 0 2px; letter-spacing: -0.5px; user-select: none; }
+  .sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+
+  /* ---- Secret rig ---- */
+  .rig {
+    display: none; margin: 0 0 18px; padding: 14px 16px;
+    background: rgba(239,71,111,0.12); border: 1px dashed rgba(239,71,111,0.55); border-radius: 14px;
+  }
+  .rig .label { font-size: 13px; color: var(--accent2); font-weight: 800; margin-bottom: 10px; }
+  .rig input {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--panel-border);
+    color: var(--text); font-size: 16px; font-weight: 700; padding: 11px 14px; border-radius: 10px; outline: none;
+  }
+  .rig input::placeholder { color: var(--muted); font-weight: 500; }
+  .rig .row { display: flex; gap: 8px; margin-top: 10px; }
+  .rig .row button { flex: 1; padding: 11px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+  .rig #rigDone { background: var(--accent2); color: #fff; }
+  .rig #rigClear { background: var(--row-bg); border: 1px solid var(--row-border); color: var(--text); }
+  .rig .hint { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+  /* ---- Setup ---- */
+  .racers { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
+  .racer-row {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--row-bg); border: 1px solid var(--row-border); border-radius: 16px; padding: 10px 14px;
+  }
+  .horse-btn {
+    font-size: 34px; line-height: 1; background: none; border: none; cursor: pointer;
+    padding: 4px; border-radius: 12px; transition: transform .1s; position: relative;
+  }
+  .horse-btn:active { transform: scale(0.85); }
+  .horse-btn::after {
+    content: "색"; position: absolute; right: -2px; bottom: -2px; font-size: 9px;
+    background: var(--accent); color: #14241a; border-radius: 6px; padding: 1px 3px; font-weight: 800;
+  }
+  .racer-row input {
+    flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 18px; font-weight: 600;
+  }
+  .racer-row input::placeholder { color: var(--muted); }
+
+  .start-btn {
+    width: 100%; padding: 18px; font-size: 20px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent2), #ff7b54);
+    color: white; border: none; border-radius: 16px; cursor: pointer;
+    box-shadow: 0 12px 30px rgba(239,71,111,0.4); transition: transform .1s; letter-spacing: 0.5px;
+  }
+  .start-btn:active { transform: scale(0.98); }
+
+  /* ---- Track ---- */
+  .track-wrap { display: none; }
+  .track {
+    position: relative; background: linear-gradient(180deg, var(--turf), var(--turf2));
+    border-radius: 18px; padding: 14px 10px; overflow: hidden; border: 1px solid var(--panel-border);
+  }
+  .lane {
+    position: relative; height: 66px; margin: 8px 0;
+    background: var(--lane-bg); border-radius: 12px; display: flex; align-items: center; overflow: hidden;
+    border-top: 1px solid rgba(255,255,255,0.10); border-bottom: 1px solid rgba(0,0,0,0.25);
+  }
+  .lane::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%);
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.22) 0 16px, transparent 16px 34px);
+  }
+  .runner { position: absolute; left: 4px; bottom: 8px; will-change: transform; transform: translateX(0); z-index: 2; }
+  .jockey {
+    display: inline-block; font-size: 38px; line-height: 1;
+    transform: scaleX(-1); filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));
+  }
+  .jockey.run  { animation: gallop 0.32s linear infinite; }
+  .jockey.fall { animation: tumble 0.55s ease-in-out infinite; }
+  @keyframes gallop {
+    0%   { transform: scaleX(-1) translateY(0)    rotate(0deg); }
+    20%  { transform: scaleX(-1) translateY(-7px) rotate(-4deg); }
+    40%  { transform: scaleX(-1) translateY(-2px) rotate(2deg); }
+    60%  { transform: scaleX(-1) translateY(-8px) rotate(-3deg); }
+    80%  { transform: scaleX(-1) translateY(-1px) rotate(3deg); }
+    100% { transform: scaleX(-1) translateY(0)    rotate(0deg); }
+  }
+  @keyframes tumble { /* 앞으로 고꾸라졌다 일어나기 */
+    0%   { transform: scaleX(-1) rotate(0deg)   translateY(0); }
+    18%  { transform: scaleX(-1) rotate(72deg)  translateY(10px); }
+    42%  { transform: scaleX(-1) rotate(82deg)  translateY(12px); }
+    66%  { transform: scaleX(-1) rotate(30deg)  translateY(4px); }
+    100% { transform: scaleX(-1) rotate(0deg)   translateY(0); }
+  }
+  @keyframes laneShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+  .lane.shake { animation: laneShake 0.22s linear infinite; }
+  .runner.dust::after {
+    content: ""; position: absolute; left: -10px; bottom: 2px; width: 16px; height: 8px; border-radius: 50%;
+    background: rgba(210,180,140,0.6); animation: dust 0.32s linear infinite;
+  }
+  @keyframes dust { 0% { opacity:.65; transform: translateX(0) scale(.6);} 100% { opacity:0; transform: translateX(-22px) scale(1.3);} }
+  .status { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 18px; white-space: nowrap; pointer-events: none; }
+  .name-tag { position: absolute; left: 10px; top: 5px; font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.95); z-index: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+  .finish {
+    position: absolute; top: 4px; bottom: 4px; right: 6px; width: 12px;
+    background-image:
+      linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%),
+      linear-gradient(45deg, #fff 25%, #222 25%, #222 75%, #fff 75%);
+    background-size: 8px 8px; background-position: 0 0, 4px 4px; background-color:#222; border-radius: 3px; opacity: 0.9; z-index: 1;
+  }
+  .countdown {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 90px; font-weight: 900; color: var(--accent); text-shadow: 0 8px 30px rgba(0,0,0,0.5); z-index: 5; pointer-events: none;
+  }
+
+  /* ---- Result ---- */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+  .modal {
+    background: var(--modal-bg); border: 1px solid var(--panel-border); color: var(--text);
+    border-radius: 22px; padding: 30px 28px; max-width: 420px; width: 100%; text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5); animation: pop .35s cubic-bezier(.2,1.3,.5,1);
+  }
+  @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal .loser-emoji { font-size: 64px; margin-bottom: 8px; }
+  .modal h2 { margin: 6px 0; font-size: 24px; }
+  .modal .pay { font-size: 28px; font-weight: 900; margin: 14px 0; color: var(--accent2); }
+  .rank-list { text-align: left; margin: 18px 0; }
+  .rank-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--row-bg); border: 1px solid var(--row-border); border-radius: 12px; margin-bottom: 8px; font-size: 16px; }
+  .rank-item .medal { font-size: 22px; }
+  .rank-item.last { background: rgba(239,71,111,0.20); border: 1px solid rgba(239,71,111,0.45); }
+  .modal-btns { display:flex; gap: 10px; margin-top: 10px; }
+  .modal-btns button { flex:1; padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; }
+  .btn-reset { background: var(--green); color: #fff; }
+</style>
+</head>
+<body data-theme="day">
+<div class="app">
+  <div class="controls">
+    <input type="range" id="volSlider" min="0" max="100" value="80" title="볼륨" aria-label="볼륨" />
+    <button id="themeBtn" title="테마 변경">🌤️</button>
+    <button id="soundBtn" title="소리 켜기/끄기">🔊</button>
+  </div>
+  <h1 id="title">내가 <span id="shootWord" style="cursor:default">쏜다</span> <span id="raceWord" style="cursor:default">레이스</span> 🏇</h1>
+  <div class="sub">꼴찌가 쏜다! 출발 버튼을 누르세요</div>
+
+  <!-- Secret rig -->
+  <div class="rig" id="rig">
+    <div class="label">🤫 꼴찌 이름 입력 (이 칸은 호스트만)</div>
+    <input type="text" id="rigInput" placeholder="비우면 진짜 랜덤 · 정확히 같은 이름이어야 적용돼요" maxlength="12" />
+    <div class="row">
+      <button id="rigClear">🎲 해제(랜덤)</button>
+      <button id="rigDone">✓ 완료·숨기기</button>
+    </div>
+    <div class="hint">설정 후 '완료·숨기기'를 누르면 사라집니다. 다시 보려면 '레이스'를 누르세요.</div>
+  </div>
+
+  <!-- Setup -->
+  <div id="setup">
+    <div class="racers" id="racers"></div>
+    <button class="start-btn" id="startBtn">🚦 출발!</button>
+  </div>
+
+  <!-- Track -->
+  <div class="track-wrap" id="trackWrap">
+    <div class="track" id="track"><div class="countdown" id="countdown"></div></div>
+  </div>
+</div>
+
+<!-- Result -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="loser-emoji">🏇</div>
+    <h2 id="loserTitle">꼴찌 결정!</h2>
+    <div class="pay" id="payLine"></div>
+    <div class="rank-list" id="rankList"></div>
+    <div class="modal-btns">
+      <button class="btn-reset" id="resetBtn">🏠 돌아가기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // PWA: 서비스워커 등록 (https 또는 localhost에서만 동작)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+<script>
+(function () {
+  const N = 3;
+  const PALETTE = [0, 35, 90, 150, 200, 265, 320]; // 팀 색상(hue)
+  let hues = [0, 150, 265];
+  let names = ["", "", ""];
+  let riggedName = "";
+  let running = false;
+
+  const $ = id => document.getElementById(id);
+  const norm = s => (s || "").trim().replace(/\s+/g, "").toLowerCase();
+  const jockeyStyle = h => `filter:hue-rotate(${h}deg) saturate(1.4) drop-shadow(0 4px 5px rgba(0,0,0,0.5))`;
+
+  // ===== 사운드 (Web Audio · 외부파일 없음) =====
+  let actx = null, master = null, soundOn = true, volume = 0.8;
+  function ensureAudio() {
+    if (!actx) {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      master = actx.createGain();
+      master.gain.value = soundOn ? volume : 0;
+      const comp = actx.createDynamicsCompressor(); // 찌그러짐 없이 크게
+      comp.threshold.value = -18; comp.knee.value = 24; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.18;
+      master.connect(comp); comp.connect(actx.destination);
+    }
+    if (actx.state === "suspended") actx.resume();
+  }
+  function out() { return master || actx.destination; }
+  function applyVolume() { if (master) master.gain.value = soundOn ? volume : 0; }
+  function tone(freq, dur, type = "square", vol = 0.14, when = 0) {
+    if (!soundOn || !actx) return;
+    const t = actx.currentTime + when;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    o.connect(g); g.connect(out());
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    o.start(t); o.stop(t + dur);
+  }
+  function sweep(f1, f2, dur, vol = 0.16) {
+    if (!soundOn || !actx) return;
+    const t = actx.currentTime;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = "sawtooth"; o.frequency.setValueAtTime(f1, t);
+    o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    o.connect(g); g.connect(out());
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur);
+  }
+  function thud(vol = 0.5) {
+    if (!soundOn || !actx) return;
+    const dur = 0.28, sr = actx.sampleRate;
+    const buf = actx.createBuffer(1, sr * dur, sr), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+    const s = actx.createBufferSource(); s.buffer = buf;
+    const f = actx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 380;
+    const g = actx.createGain(); g.gain.value = vol;
+    s.connect(f); f.connect(g); g.connect(out()); s.start();
+  }
+  function hoof(when, vol) { // 발굽이 땅을 치는 타격음(노이즈 펀치 + 저음 쿵)
+    if (!soundOn || !actx) return;
+    const t0 = actx.currentTime + when, sr = actx.sampleRate, dur = 0.09;
+    const buf = actx.createBuffer(1, sr * dur, sr), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+    const s = actx.createBufferSource(); s.buffer = buf;
+    const lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 430;
+    const hp = actx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 110;
+    const g = actx.createGain(); g.gain.value = vol;
+    s.connect(lp); lp.connect(hp); hp.connect(g); g.connect(out()); s.start(t0);
+    const o = actx.createOscillator(), og = actx.createGain(); // 묵직한 쿵
+    o.type = "sine"; o.frequency.setValueAtTime(115, t0); o.frequency.exponentialRampToValueAtTime(58, t0 + 0.08);
+    og.gain.setValueAtTime(vol * 0.9, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.10);
+    o.connect(og); og.connect(out()); o.start(t0); o.stop(t0 + 0.11);
+  }
+  function gallop() { // 다가닥-다가닥! 말 갤럽 특유의 더블 비트 + 쉼
+    if (!soundOn || !actx) return;
+    const beat = [0, 0.085, 0.25, 0.335], acc = [0.5, 0.34, 0.5, 0.34];
+    beat.forEach((dt, k) => hoof(dt, acc[k]));
+  }
+  let ambNodes = null;
+  function startAmbience() { // 경마장 관중 함성(필터드 노이즈 + 느린 LFO)
+    if (!soundOn || !actx) return;
+    stopAmbience();
+    const sr = actx.sampleRate;
+    const buf = actx.createBuffer(1, sr * 2, sr), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = actx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const bp = actx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 950; bp.Q.value = 0.6;
+    const g = actx.createGain(); g.gain.setValueAtTime(0.0001, actx.currentTime);
+    g.gain.linearRampToValueAtTime(0.11, actx.currentTime + 0.6);
+    src.connect(bp); bp.connect(g); g.connect(out()); src.start();
+    const lfo = actx.createOscillator(), lg = actx.createGain(); // 함성 출렁임
+    lfo.frequency.value = 0.5; lg.gain.value = 0.045; lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    ambNodes = { src, lfo, g };
+  }
+  function stopAmbience() {
+    if (!ambNodes || !actx) return;
+    try {
+      ambNodes.g.gain.cancelScheduledValues(actx.currentTime);
+      ambNodes.g.gain.linearRampToValueAtTime(0.0001, actx.currentTime + 0.3);
+      ambNodes.src.stop(actx.currentTime + 0.35); ambNodes.lfo.stop(actx.currentTime + 0.35);
+    } catch (e) {}
+    ambNodes = null;
+  }
+  function cheer() { // 결승 함성 솟구침
+    if (!soundOn || !actx) return;
+    const sr = actx.sampleRate, dur = 0.9;
+    const buf = actx.createBuffer(1, sr * dur, sr), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.min(1, i / (d.length * 0.3));
+    const s = actx.createBufferSource(); s.buffer = buf;
+    const bp = actx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1100; bp.Q.value = 0.5;
+    const g = actx.createGain(); g.gain.value = 0.12;
+    s.connect(bp); bp.connect(g); g.connect(out()); s.start();
+  }
+  function fanfare() {
+    [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, "square", 0.16, i * 0.12));
+  }
+  function eventSound(type) {
+    if (type === "fall") thud(0.55);
+    else if (type === "backward") sweep(420, 120, 0.35, 0.14);
+    else if (type === "burst") sweep(300, 900, 0.25, 0.13);
+    else if (type === "sleep") tone(120, 0.5, "sine", 0.10);
+  }
+  $("soundBtn").onclick = () => {
+    soundOn = !soundOn;
+    $("soundBtn").textContent = soundOn ? "🔊" : "🔇";
+    if (soundOn) ensureAudio(); else stopAmbience();
+    applyVolume();
+  };
+  $("volSlider").addEventListener("input", e => {
+    volume = e.target.value / 100;
+    if (volume > 0 && !soundOn) { soundOn = true; $("soundBtn").textContent = "🔊"; }
+    if (volume === 0 && soundOn) { soundOn = false; $("soundBtn").textContent = "🔇"; }
+    ensureAudio();
+    applyVolume();
+  });
+
+  // ===== 테마 =====
+  const THEMES = [
+    { key: "day",    icon: "🌤️" },
+    { key: "night",  icon: "🌙" },
+    { key: "sunset", icon: "🌅" },
+  ];
+  let themeIdx = 0;
+  $("themeBtn").onclick = () => {
+    themeIdx = (themeIdx + 1) % THEMES.length;
+    document.body.setAttribute("data-theme", THEMES[themeIdx].key);
+    $("themeBtn").textContent = THEMES[themeIdx].icon;
+  };
+
+  // ===== Setup =====
+  function renderSetup() {
+    const wrap = $("racers");
+    wrap.innerHTML = "";
+    for (let i = 0; i < N; i++) {
+      const row = document.createElement("div");
+      row.className = "racer-row";
+      row.innerHTML = `
+        <button class="horse-btn" data-i="${i}" title="탭하면 색 변경" style="filter:hue-rotate(${hues[i]}deg) saturate(1.5)">🏇</button>
+        <input type="text" data-i="${i}" placeholder="참가자 ${i + 1}" maxlength="12" value="${names[i]}">`;
+      wrap.appendChild(row);
+    }
+    wrap.querySelectorAll(".horse-btn").forEach(b => {
+      b.onclick = () => { const i = +b.dataset.i; hues[i] = PALETTE[(PALETTE.indexOf(hues[i]) + 1) % PALETTE.length]; renderSetup(); };
+    });
+    wrap.querySelectorAll("input").forEach(inp => { inp.oninput = () => { names[+inp.dataset.i] = inp.value; }; });
+  }
+  const displayName = i => (names[i] || "").trim() || `참가자 ${i + 1}`;
+
+  // ===== Secret rig =====
+  $("raceWord").addEventListener("click", () => {
+    const r = $("rig");
+    r.style.display = r.style.display === "block" ? "none" : "block";
+    if (r.style.display === "block") $("rigInput").focus();
+  });
+  $("shootWord").addEventListener("click", () => { riggedName = ""; $("rigInput").value = ""; }); // 의심받으면 초기화
+  $("rigInput").addEventListener("input", e => { riggedName = e.target.value; });
+  $("rigDone").onclick = () => { $("rig").style.display = "none"; };
+  $("rigClear").onclick = () => { riggedName = ""; $("rigInput").value = ""; };
+  function riggedIndex() {
+    const target = norm(riggedName);
+    if (!target) return -1;
+    for (let i = 0; i < N; i++) if (norm(displayName(i)) === target) return i;
+    return -1;
+  }
+
+  // ===== 도착 순서(미리 고정) =====
+  function buildFinishTimes() {
+    const idx = [...Array(N).keys()];
+    const loser = riggedIndex();
+    let order;
+    if (loser >= 0) order = [...shuffle(idx.filter(i => i !== loser)), loser];
+    else order = shuffle(idx.slice());
+    const times = new Array(N);
+    let t = 5.4 + Math.random() * 0.4;
+    order.forEach(ri => { times[ri] = t; t += 0.3 + Math.random() * 0.35; });
+    return { times, order };
+  }
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+  // 페이스 곡선: gamma<1 초반리드, gamma>1 후반추격
+  function buildShapes(order) {
+    const loser = order[order.length - 1];
+    const gamma = new Array(N);
+    for (let i = 0; i < N; i++) {
+      if (i === loser) gamma[i] = Math.random() < 0.7 ? 0.48 + Math.random() * 0.22 : 0.9 + Math.random() * 0.5;
+      else gamma[i] = 0.55 + Math.random() * 1.25;
+    }
+    return gamma;
+  }
+
+  // 이벤트: 잠/넘어짐/후진/질주 (결승 전 회복 → 순서 불변)
+  function buildEvents(T) {
+    const TYPES = [
+      { type: "sleep",    emoji: "💤", amp: 0.13, sigma: 0.70, sign: -1, w: 1.0 },
+      { type: "fall",     emoji: "💥", amp: 0.20, sigma: 0.26, sign: -1, w: 3.2 }, // 넘어짐 비중↑
+      { type: "backward", emoji: "😵", amp: 0.22, sigma: 0.30, sign: -1, w: 1.0 },
+      { type: "burst",    emoji: "🔥", amp: 0.14, sigma: 0.28, sign: +1, w: 1.4 },
+    ];
+    const totW = TYPES.reduce((s, t) => s + t.w, 0);
+    const r = Math.random();
+    const count = r < 0.08 ? 1 : r < 0.45 ? 1 : r < 0.85 ? 2 : 3; // 거의 항상 1개 이상
+    const events = []; let last = -1;
+    for (let k = 0; k < count; k++) {
+      let pick;
+      do {
+        let x = Math.random() * totW, idx = 0;
+        while (x > TYPES[idx].w) { x -= TYPES[idx].w; idx++; }
+        pick = idx;
+      } while (pick === last);
+      last = pick;
+      const base = TYPES[pick];
+      events.push({ ...base, amp: base.amp * (0.8 + Math.random() * 0.5), tc: T * (0.15 + (k + Math.random()) / (count + 0.5) * 0.55) });
+    }
+    return events;
+  }
+
+  // ===== Race =====
+  let clopTimer = null;
+  function startRace() {
+    if (running) return;
+    running = true;
+    ensureAudio();
+    $("rig").style.display = "none";
+
+    const { times: finishTimes, order } = buildFinishTimes();
+    const gamma = buildShapes(order);
+    const events = finishTimes.map(T => buildEvents(T));
+    // 매 경주 약 70% 확률로 최소 1번은 넘어지게 (조금 느낄 수 있게)
+    if (Math.random() < 0.7 && !events.some(evs => evs.some(e => e.type === "fall"))) {
+      const i = Math.floor(Math.random() * N), T = finishTimes[i];
+      events[i].push({ type: "fall", emoji: "💥", amp: 0.20 * (0.9 + Math.random() * 0.4), sigma: 0.26, sign: -1, tc: T * (0.3 + Math.random() * 0.35) });
+    }
+    const wob = Array.from({ length: N }, () => ({ amp: 0.03 + Math.random() * 0.03, freq: 1.4 + Math.random() * 1.8, phase: Math.random() * Math.PI * 2 }));
+    const lastActive = new Array(N).fill(undefined);
+
+    $("setup").style.display = "none";
+    $("trackWrap").style.display = "block";
+    const track = $("track");
+    track.innerHTML = '<div class="countdown" id="countdown"></div>';
+    const lanes = [];
+    for (let i = 0; i < N; i++) {
+      const lane = document.createElement("div");
+      lane.className = "lane";
+      lane.innerHTML = `
+        <div class="name-tag">${displayName(i)}</div>
+        <div class="finish"></div>
+        <div class="runner" id="runner${i}">
+          <span class="status" id="status${i}"></span>
+          <span class="jockey" id="jockey${i}" style="${jockeyStyle(hues[i])}">🏇</span>
+        </div>`;
+      track.appendChild(lane);
+      lanes.push(lane);
+    }
+
+    const finished = [];
+    const cd = $("countdown");
+    let c = 3; cd.textContent = c; tone(440, 0.15, "square", 0.18);
+    const cdTimer = setInterval(() => {
+      c--;
+      if (c > 0) { cd.textContent = c; tone(440, 0.15, "square", 0.18); }
+      else if (c === 0) { cd.textContent = "GO!"; tone(880, 0.3, "square", 0.2); }
+      else { clearInterval(cdTimer); cd.textContent = ""; beginAnim(); }
+    }, 800);
+
+    const travelWidth = i => lanes[i].clientWidth - $("runner" + i).offsetWidth - 10;
+
+    function setMotion(i, state) { // 'run' | 'fall' | 'stop'
+      const j = $("jockey" + i), run = $("runner" + i);
+      j.classList.remove("run", "fall");
+      run.classList.remove("dust");
+      if (state === "run") { j.classList.add("run"); run.classList.add("dust"); }
+      else if (state === "fall") { j.classList.add("fall"); }
+    }
+
+    function beginAnim() {
+      for (let i = 0; i < N; i++) setMotion(i, "run");
+      clearInterval(clopTimer);
+      startAmbience();
+      gallop();
+      clopTimer = setInterval(gallop, 600);
+      const startT = performance.now();
+      function frame(now) {
+        const elapsed = (now - startT) / 1000;
+        for (let i = 0; i < N; i++) {
+          if (finished.includes(i)) continue;
+          const T = finishTimes[i];
+          const x = Math.min(elapsed / T, 1);
+          const env = Math.sin(Math.PI * x);
+          const shape = Math.pow(x, gamma[i]);
+          let raw = wob[i].amp * Math.sin(wob[i].freq * elapsed + wob[i].phase);
+          let active = null, activeMag = 0.05;
+          for (const ev of events[i]) {
+            const g = Math.exp(-((elapsed - ev.tc) ** 2) / (2 * ev.sigma * ev.sigma));
+            raw += ev.sign * ev.amp * g;
+            const mag = ev.amp * g;
+            if (mag > activeMag) { activeMag = mag; active = ev; }
+          }
+          let p = shape + env * raw;
+          if (p < 0) p = 0;
+          if (elapsed >= T) { p = 1; finished.push(i); }
+          if (p > 1) p = 1;
+          $("runner" + i).style.transform = `translateX(${p * travelWidth(i)}px)`;
+
+          const st = $("status" + i);
+          const isFall = !!(active && active.type === "fall");
+          lanes[i].classList.toggle("shake", isFall && !finished.includes(i));
+          if (finished.includes(i)) { st.textContent = "🏁"; setMotion(i, "stop"); }
+          else if (active) {
+            st.textContent = active.emoji;
+            setMotion(i, isFall ? "fall" : active.type === "sleep" ? "stop" : "run");
+            if (lastActive[i] !== active) eventSound(active.type); // 진입 시 1회
+          } else { st.textContent = ""; setMotion(i, "run"); }
+          lastActive[i] = active;
+        }
+        if (finished.length < N) requestAnimationFrame(frame);
+        else { clearInterval(clopTimer); stopAmbience(); cheer(); fanfare(); showResult(finished); }
+      }
+      requestAnimationFrame(frame);
+    }
+  }
+
+  // ===== Result =====
+  function showResult(orderFinished) {
+    const loser = orderFinished[orderFinished.length - 1];
+    const medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+    $("loserTitle").textContent = `꼴찌: ${displayName(loser)}`;
+    $("payLine").innerHTML = `🏇 <b>${displayName(loser)}</b> 가 쏜다! 💸`;
+    const list = $("rankList"); list.innerHTML = "";
+    orderFinished.forEach((ri, rank) => {
+      const last = rank === orderFinished.length - 1;
+      const item = document.createElement("div");
+      item.className = "rank-item" + (last ? " last" : "");
+      item.innerHTML = `
+        <span class="medal">${medals[rank] || (rank + 1)}</span>
+        <span style="font-size:22px;filter:hue-rotate(${hues[ri]}deg) saturate(1.5)">🏇</span>
+        <span style="font-weight:700">${displayName(ri)}</span>
+        ${last ? '<span style="margin-left:auto;color:var(--accent2);font-weight:800">쏘기 💸</span>' : ''}`;
+      list.appendChild(item);
+    });
+    setTimeout(() => { $("overlay").style.display = "flex"; }, 400);
+    running = false;
+  }
+
+  $("resetBtn").onclick = () => {
+    $("overlay").style.display = "none";
+    $("trackWrap").style.display = "none";
+    $("setup").style.display = "block";
+  };
+  $("startBtn").onclick = startRace;
+
+  renderSetup();
+})();
+</script>
+</body>
+</html>

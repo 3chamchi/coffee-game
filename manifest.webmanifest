@@ -1,0 +1,17 @@
+{
+  "name": "내가 쏜다 레이스",
+  "short_name": "쏜다레이스",
+  "description": "꼴찌가 쏜다! 말타기 경마 내기 게임",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#74c389",
+  "theme_color": "#3f9a47",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
