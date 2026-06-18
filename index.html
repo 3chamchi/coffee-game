@@ -73,7 +73,13 @@
     border-radius: 24px; padding: 18px 26px 32px;
     box-shadow: 0 30px 80px rgba(0,0,0,0.35); backdrop-filter: blur(10px);
   }
-  .controls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 4px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .app-icon {
+    width: 42px; height: 42px; border-radius: 11px; cursor: pointer; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform .1s; user-select: none;
+  }
+  .app-icon:active { transform: scale(0.88); }
+  .controls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
   .controls #volSlider {
     width: 110px; height: 6px; -webkit-appearance: none; appearance: none; cursor: pointer;
     background: var(--row-border); border-radius: 999px; outline: none; margin-right: 2px;
@@ -92,23 +98,6 @@
   .controls button:active { transform: scale(0.9); }
   h1 { font-size: 30px; text-align: center; margin: 2px 0 2px; letter-spacing: -0.5px; user-select: none; }
   .sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 22px; }
-
-  /* ---- Secret rig ---- */
-  .rig {
-    display: none; margin: 0 0 18px; padding: 14px 16px;
-    background: rgba(239,71,111,0.12); border: 1px dashed rgba(239,71,111,0.55); border-radius: 14px;
-  }
-  .rig .label { font-size: 13px; color: var(--accent2); font-weight: 800; margin-bottom: 10px; }
-  .rig input {
-    width: 100%; background: var(--input-bg); border: 1px solid var(--panel-border);
-    color: var(--text); font-size: 16px; font-weight: 700; padding: 11px 14px; border-radius: 10px; outline: none;
-  }
-  .rig input::placeholder { color: var(--muted); font-weight: 500; }
-  .rig .row { display: flex; gap: 8px; margin-top: 10px; }
-  .rig .row button { flex: 1; padding: 11px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
-  .rig #rigDone { background: var(--accent2); color: #fff; }
-  .rig #rigClear { background: var(--row-bg); border: 1px solid var(--row-border); color: var(--text); }
-  .rig .hint { font-size: 11px; color: var(--muted); margin-top: 10px; }
 
   /* ---- Setup ---- */
   .racers { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
@@ -158,8 +147,19 @@
     display: inline-block; font-size: 38px; line-height: 1;
     transform: scaleX(-1); filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));
   }
-  .jockey.run  { animation: gallop 0.32s linear infinite; }
-  .jockey.fall { animation: tumble 0.55s ease-in-out infinite; }
+  .jockey.run   { animation: gallop 0.32s linear infinite; }
+  .jockey.sleep { animation: snooze 1.8s ease-in-out infinite; }   /* 제자리에서 꾸벅꾸벅 */
+  .jockey.fall  { animation: falldown 0.55s ease-out forwards; }   /* 고꾸라져 쓰러진 채 정지 */
+  @keyframes snooze {
+    0%,100% { transform: scaleX(-1) rotate(0deg)  scale(1); }
+    50%     { transform: scaleX(-1) rotate(-9deg) scale(1.05); }
+  }
+  @keyframes falldown {
+    0%   { transform: scaleX(-1) rotate(0deg)  translateY(0); }
+    35%  { transform: scaleX(-1) rotate(72deg) translateY(10px); }
+    65%  { transform: scaleX(-1) rotate(96deg) translateY(15px); }
+    100% { transform: scaleX(-1) rotate(82deg) translateY(15px); }
+  }
   @keyframes gallop {
     0%   { transform: scaleX(-1) translateY(0)    rotate(0deg); }
     20%  { transform: scaleX(-1) translateY(-7px) rotate(-4deg); }
@@ -167,13 +167,6 @@
     60%  { transform: scaleX(-1) translateY(-8px) rotate(-3deg); }
     80%  { transform: scaleX(-1) translateY(-1px) rotate(3deg); }
     100% { transform: scaleX(-1) translateY(0)    rotate(0deg); }
-  }
-  @keyframes tumble { /* 앞으로 고꾸라졌다 일어나기 */
-    0%   { transform: scaleX(-1) rotate(0deg)   translateY(0); }
-    18%  { transform: scaleX(-1) rotate(72deg)  translateY(10px); }
-    42%  { transform: scaleX(-1) rotate(82deg)  translateY(12px); }
-    66%  { transform: scaleX(-1) rotate(30deg)  translateY(4px); }
-    100% { transform: scaleX(-1) rotate(0deg)   translateY(0); }
   }
   @keyframes laneShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
   .lane.shake { animation: laneShake 0.22s linear infinite; }
@@ -214,28 +207,28 @@
   .modal-btns { display:flex; gap: 10px; margin-top: 10px; }
   .modal-btns button { flex:1; padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; }
   .btn-reset { background: var(--green); color: #fff; }
+  .modal input {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--panel-border);
+    color: var(--text); font-size: 16px; font-weight: 700; padding: 12px 14px; border-radius: 10px; outline: none;
+  }
+  .modal input::placeholder { color: var(--muted); font-weight: 500; }
+  .modal .hint { font-size: 12px; color: var(--muted); margin: 6px 0 14px; }
+  #rigClear { background: var(--row-bg); border: 1px solid var(--row-border); color: var(--text); }
+  #rigDone  { background: var(--accent2); color: #fff; }
 </style>
 </head>
 <body data-theme="day">
 <div class="app">
-  <div class="controls">
-    <input type="range" id="volSlider" min="0" max="100" value="80" title="볼륨" aria-label="볼륨" />
-    <button id="themeBtn" title="테마 변경">🌤️</button>
-    <button id="soundBtn" title="소리 켜기/끄기">🔊</button>
+  <div class="topbar">
+    <img id="appIcon" class="app-icon" src="icon-192.png" alt="쏜다레이스" draggable="false" />
+    <div class="controls">
+      <input type="range" id="volSlider" min="0" max="100" value="80" title="볼륨" aria-label="볼륨" />
+      <button id="themeBtn" title="테마 변경">🌤️</button>
+      <button id="soundBtn" title="소리 켜기/끄기">🔊</button>
+    </div>
   </div>
   <h1 id="title">내가 <span id="shootWord" style="cursor:default">쏜다</span> <span id="raceWord" style="cursor:default">레이스</span> 🏇</h1>
   <div class="sub">꼴찌가 쏜다! 출발 버튼을 누르세요</div>
-
-  <!-- Secret rig -->
-  <div class="rig" id="rig">
-    <div class="label">🤫 꼴찌 이름 입력 (이 칸은 호스트만)</div>
-    <input type="text" id="rigInput" placeholder="비우면 진짜 랜덤 · 정확히 같은 이름이어야 적용돼요" maxlength="12" />
-    <div class="row">
-      <button id="rigClear">🎲 해제(랜덤)</button>
-      <button id="rigDone">✓ 완료·숨기기</button>
-    </div>
-    <div class="hint">설정 후 '완료·숨기기'를 누르면 사라집니다. 다시 보려면 '레이스'를 누르세요.</div>
-  </div>
 
   <!-- Setup -->
   <div id="setup">
@@ -246,6 +239,20 @@
   <!-- Track -->
   <div class="track-wrap" id="trackWrap">
     <div class="track" id="track"><div class="countdown" id="countdown"></div></div>
+  </div>
+</div>
+
+<!-- Secret rig (modal) -->
+<div class="overlay" id="rigOverlay">
+  <div class="modal">
+    <div class="loser-emoji" style="font-size:42px">🤫</div>
+    <h2>꼴찌 지정</h2>
+    <div class="hint">정확히 같은 이름이어야 적용돼요. 비우면 진짜 랜덤.</div>
+    <input type="text" id="rigInput" placeholder="꼴찌가 될 사람 이름" maxlength="12" />
+    <div class="modal-btns" style="margin-top:16px">
+      <button id="rigClear">🎲 해제(랜덤)</button>
+      <button id="rigDone">✓ 적용·숨기기</button>
+    </div>
   </div>
 </div>
 
@@ -269,6 +276,15 @@
       navigator.serviceWorker.register("sw.js").catch(() => {});
     });
   }
+  // 설치형(standalone)에서 가로 모드 잠금 시도 (지원 브라우저에 한함)
+  function lockLandscape() {
+    try {
+      const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+      if (standalone && screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(() => {});
+    } catch (e) {}
+  }
+  window.addEventListener("load", lockLandscape);
+  document.addEventListener("click", lockLandscape, { once: true });
 </script>
 <script>
 (function () {
@@ -438,16 +454,18 @@
   }
   const displayName = i => (names[i] || "").trim() || `참가자 ${i + 1}`;
 
-  // ===== Secret rig =====
+  // ===== Secret rig (모달) =====
+  function resetRig() { riggedName = ""; $("rigInput").value = ""; } // 조작 초기화 → 진짜 랜덤
   $("raceWord").addEventListener("click", () => {
-    const r = $("rig");
-    r.style.display = r.style.display === "block" ? "none" : "block";
-    if (r.style.display === "block") $("rigInput").focus();
+    $("rigInput").value = riggedName;
+    $("rigOverlay").style.display = "flex";
+    setTimeout(() => $("rigInput").focus(), 50);
   });
-  $("shootWord").addEventListener("click", () => { riggedName = ""; $("rigInput").value = ""; }); // 의심받으면 초기화
+  $("shootWord").addEventListener("click", resetRig);        // '쏜다' 클릭 → 초기화
+  $("appIcon").addEventListener("click", resetRig);          // 앱 아이콘 클릭 → 초기화(들키지 않게)
   $("rigInput").addEventListener("input", e => { riggedName = e.target.value; });
-  $("rigDone").onclick = () => { $("rig").style.display = "none"; };
-  $("rigClear").onclick = () => { riggedName = ""; $("rigInput").value = ""; };
+  $("rigDone").onclick = () => { $("rigOverlay").style.display = "none"; };
+  $("rigClear").onclick = resetRig;
   function riggedIndex() {
     const target = norm(riggedName);
     if (!target) return -1;
@@ -480,30 +498,27 @@
     return gamma;
   }
 
-  // 이벤트: 잠/넘어짐/후진/질주 (결승 전 회복 → 순서 불변)
-  function buildEvents(T) {
-    const TYPES = [
-      { type: "sleep",    emoji: "💤", amp: 0.13, sigma: 0.70, sign: -1, w: 1.0 },
-      { type: "fall",     emoji: "💥", amp: 0.20, sigma: 0.26, sign: -1, w: 3.2 }, // 넘어짐 비중↑
-      { type: "backward", emoji: "😵", amp: 0.22, sigma: 0.30, sign: -1, w: 1.0 },
-      { type: "burst",    emoji: "🔥", amp: 0.14, sigma: 0.28, sign: +1, w: 1.4 },
-    ];
-    const totW = TYPES.reduce((s, t) => s + t.w, 0);
+  // 멈춤 이벤트: 자거나 넘어지면 '그 자리에 정지'. (시간 재매핑으로 도착시각/순서는 불변)
+  function makePause(isFall) {
+    const dur = isFall ? 0.55 + Math.random() * 0.45 : 0.9 + Math.random() * 0.7; // 넘어짐 0.55~1.0s, 잠 0.9~1.6s
+    return { type: isFall ? "fall" : "sleep", emoji: isFall ? "💥" : "💤", dur };
+  }
+  function buildPauses(T) {
     const r = Math.random();
-    const count = r < 0.08 ? 1 : r < 0.45 ? 1 : r < 0.85 ? 2 : 3; // 거의 항상 1개 이상
-    const events = []; let last = -1;
+    const count = r < 0.30 ? 0 : r < 0.80 ? 1 : 2;
+    const pauses = [];
+    const maxEnd = T * 0.80;
+    let cursor = T * 0.14;
     for (let k = 0; k < count; k++) {
-      let pick;
-      do {
-        let x = Math.random() * totW, idx = 0;
-        while (x > TYPES[idx].w) { x -= TYPES[idx].w; idx++; }
-        pick = idx;
-      } while (pick === last);
-      last = pick;
-      const base = TYPES[pick];
-      events.push({ ...base, amp: base.amp * (0.8 + Math.random() * 0.5), tc: T * (0.15 + (k + Math.random()) / (count + 0.5) * 0.55) });
+      const pz = makePause(Math.random() < 0.62); // 넘어짐 비중↑
+      const room = maxEnd - pz.dur - cursor;
+      if (room <= 0.2) break;
+      pz.start = cursor + Math.random() * Math.min(room, T * 0.30);
+      pauses.push(pz);
+      cursor = pz.start + pz.dur + 0.45; // 다음 이벤트와 간격
+      if (cursor > maxEnd - 0.45) break;
     }
-    return events;
+    return pauses;
   }
 
   // ===== Race =====
@@ -512,18 +527,20 @@
     if (running) return;
     running = true;
     ensureAudio();
-    $("rig").style.display = "none";
+    $("rigOverlay").style.display = "none";
 
     const { times: finishTimes, order } = buildFinishTimes();
     const gamma = buildShapes(order);
-    const events = finishTimes.map(T => buildEvents(T));
-    // 매 경주 약 70% 확률로 최소 1번은 넘어지게 (조금 느낄 수 있게)
-    if (Math.random() < 0.7 && !events.some(evs => evs.some(e => e.type === "fall"))) {
+    const pauses = finishTimes.map(T => buildPauses(T));
+    // 매 경주 약 70% 확률로 최소 1번은 넘어지게
+    if (Math.random() < 0.7 && !pauses.some(ps => ps.some(p => p.type === "fall"))) {
       const i = Math.floor(Math.random() * N), T = finishTimes[i];
-      events[i].push({ type: "fall", emoji: "💥", amp: 0.20 * (0.9 + Math.random() * 0.4), sigma: 0.26, sign: -1, tc: T * (0.3 + Math.random() * 0.35) });
+      pauses[i] = [{ type: "fall", emoji: "💥", dur: 0.6 + Math.random() * 0.3, start: T * (0.3 + Math.random() * 0.3) }];
     }
+    // 멈춘 시간(P)만큼 빼고 '실제 달리는 시간'으로 거리 계산 → 도착은 여전히 finishTimes[i]에 고정
+    const activeTime = finishTimes.map((T, i) => T - pauses[i].reduce((s, p) => s + p.dur, 0));
     const wob = Array.from({ length: N }, () => ({ amp: 0.03 + Math.random() * 0.03, freq: 1.4 + Math.random() * 1.8, phase: Math.random() * Math.PI * 2 }));
-    const lastActive = new Array(N).fill(undefined);
+    const motionState = new Array(N).fill(null); // 현재 모션(클래스 재설정 방지)
 
     $("setup").style.display = "none";
     $("trackWrap").style.display = "block";
@@ -556,12 +573,17 @@
 
     const travelWidth = i => lanes[i].clientWidth - $("runner" + i).offsetWidth - 10;
 
-    function setMotion(i, state) { // 'run' | 'fall' | 'stop'
+    function setMotion(i, state) { // 'run' | 'sleep' | 'fall' | 'stop'
+      if (motionState[i] === state) return; // 같은 상태면 클래스 재설정 안 함(애니메이션 끊김 방지)
+      motionState[i] = state;
       const j = $("jockey" + i), run = $("runner" + i);
-      j.classList.remove("run", "fall");
+      j.classList.remove("run", "sleep", "fall");
       run.classList.remove("dust");
       if (state === "run") { j.classList.add("run"); run.classList.add("dust"); }
-      else if (state === "fall") { j.classList.add("fall"); }
+      else if (state === "sleep") j.classList.add("sleep");
+      else if (state === "fall") j.classList.add("fall");
+      if (state === "sleep") eventSound("sleep");
+      else if (state === "fall") eventSound("fall");
     }
 
     function beginAnim() {
@@ -576,33 +598,34 @@
         for (let i = 0; i < N; i++) {
           if (finished.includes(i)) continue;
           const T = finishTimes[i];
-          const x = Math.min(elapsed / T, 1);
-          const env = Math.sin(Math.PI * x);
-          const shape = Math.pow(x, gamma[i]);
-          let raw = wob[i].amp * Math.sin(wob[i].freq * elapsed + wob[i].phase);
-          let active = null, activeMag = 0.05;
-          for (const ev of events[i]) {
-            const g = Math.exp(-((elapsed - ev.tc) ** 2) / (2 * ev.sigma * ev.sigma));
-            raw += ev.sign * ev.amp * g;
-            const mag = ev.amp * g;
-            if (mag > activeMag) { activeMag = mag; active = ev; }
+
+          // 시간 재매핑: 멈춘 구간만큼 진행도(tau)를 얼린다
+          let tau = elapsed, cur = null;
+          for (const pz of pauses[i]) {
+            const end = pz.start + pz.dur;
+            if (elapsed >= end) tau -= pz.dur;            // 이미 지난 멈춤 → 통째로 빼기
+            else if (elapsed > pz.start) { tau -= (elapsed - pz.start); cur = pz; break; } // 멈춘 중 → 그만큼만
+            else break;                                   // 아직 안 옴
           }
-          let p = shape + env * raw;
+          if (tau < 0) tau = 0;
+
+          const x = Math.min(tau / activeTime[i], 1);
+          let p = Math.pow(x, gamma[i]);
+          if (!cur) { // 달리는 중에만 미세 흔들림(멈췄을 땐 완전히 정지)
+            const env = Math.sin(Math.PI * x);
+            p += env * wob[i].amp * Math.sin(wob[i].freq * elapsed + wob[i].phase);
+          }
           if (p < 0) p = 0;
           if (elapsed >= T) { p = 1; finished.push(i); }
           if (p > 1) p = 1;
           $("runner" + i).style.transform = `translateX(${p * travelWidth(i)}px)`;
 
           const st = $("status" + i);
-          const isFall = !!(active && active.type === "fall");
+          const isFall = !!(cur && cur.type === "fall");
           lanes[i].classList.toggle("shake", isFall && !finished.includes(i));
           if (finished.includes(i)) { st.textContent = "🏁"; setMotion(i, "stop"); }
-          else if (active) {
-            st.textContent = active.emoji;
-            setMotion(i, isFall ? "fall" : active.type === "sleep" ? "stop" : "run");
-            if (lastActive[i] !== active) eventSound(active.type); // 진입 시 1회
-          } else { st.textContent = ""; setMotion(i, "run"); }
-          lastActive[i] = active;
+          else if (cur) { st.textContent = cur.emoji; setMotion(i, cur.type); }
+          else { st.textContent = ""; setMotion(i, "run"); }
         }
         if (finished.length < N) requestAnimationFrame(frame);
         else { clearInterval(clopTimer); stopAmbience(); cheer(); fanfare(); showResult(finished); }
