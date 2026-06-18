@@ -236,11 +236,12 @@
     .racer-row input { font-size: 15px; }
     .horse-btn { font-size: 26px; padding: 2px; }
     .start-btn { padding: 11px; font-size: 17px; border-radius: 12px; }
-    .track { padding: 8px 8px; border-radius: 14px; }
-    .lane { height: 44px; margin: 5px 0; border-radius: 10px; }
-    .jockey { font-size: 30px; }
+    .track { padding: 6px 8px; border-radius: 14px; }
+    .lane { height: 60px; margin: 5px 0; border-radius: 10px; }
+    .runner { bottom: 5px; }
+    .jockey { font-size: 32px; }
     .name-tag { font-size: 11px; top: 3px; left: 8px; }
-    .status { top: -13px; font-size: 15px; }
+    .status { top: -10px; font-size: 17px; }      /* 임팩트가 레인 안에 보이도록 */
     .countdown { font-size: 56px; }
     /* 모달도 작은 높이에 맞게 */
     .overlay { padding: 10px; }
@@ -254,14 +255,18 @@
   }
   /* 아주 낮은 화면(소형 폰 가로)에서 한층 더 압축 */
   @media (orientation: landscape) and (max-height: 380px) {
-    h1 { font-size: 17px; }
-    .sub { margin-bottom: 5px; }
+    .app { padding: 6px 14px 8px; }
+    h1 { font-size: 16px; }
+    .sub { font-size: 10px; margin-bottom: 4px; }
     .racers { gap: 4px; margin-bottom: 7px; }
     .racer-row { padding: 3px 10px; }
-    .lane { height: 38px; margin: 4px 0; }
-    .jockey { font-size: 26px; }
+    .track { padding: 4px 8px; }
+    .lane { height: 50px; margin: 4px 0; }
+    .runner { bottom: 4px; }
+    .jockey { font-size: 28px; }
+    .status { top: -8px; font-size: 15px; }
     .start-btn { padding: 9px; }
-    .countdown { font-size: 46px; }
+    .countdown { font-size: 44px; }
   }
 </style>
 </head>
