@@ -59,7 +59,8 @@
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; overscroll-behavior: none; }
+  html { height: 100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
     background: var(--page-bg); background-attachment: fixed;
@@ -67,6 +68,8 @@
     display: flex; align-items: center; justify-content: center;
     padding: 20px; overflow-x: hidden; transition: background .4s, color .3s;
   }
+  /* 래퍼 — 가로/세로 모두 지원 (강제 회전 없음) */
+  #rotor { width: 100%; max-width: 760px; display: flex; justify-content: center; }
   .app {
     width: 100%; max-width: 760px;
     background: var(--panel-bg); border: 1px solid var(--panel-border);
@@ -75,10 +78,11 @@
   }
   .topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
   .app-icon {
-    width: 42px; height: 42px; border-radius: 11px; cursor: pointer; flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform .1s; user-select: none;
+    width: 42px; height: 42px; border-radius: 11px; cursor: default; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); user-select: none; -webkit-user-drag: none;
   }
-  .app-icon:active { transform: scale(0.88); }
+  /* 누름 애니메이션/하이라이트 없음 — 누른 줄 모르게 */
+  .app-icon:active, .app-icon:focus { transform: none; outline: none; }
   .controls { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
   .controls #volSlider {
     width: 110px; height: 6px; -webkit-appearance: none; appearance: none; cursor: pointer;
@@ -215,9 +219,54 @@
   .modal .hint { font-size: 12px; color: var(--muted); margin: 6px 0 14px; }
   #rigClear { background: var(--row-bg); border: 1px solid var(--row-border); color: var(--text); }
   #rigDone  { background: var(--accent2); color: #fff; }
+
+  /* ===== 모바일 가로 모드 최적화 (낮은 높이 화면에 맞춤) ===== */
+  @media (orientation: landscape) and (max-height: 540px) {
+    body { padding: 6px; align-items: center; }
+    #rotor { max-width: none; width: 100%; }
+    .app { max-width: 96vw; padding: 8px 16px 12px; border-radius: 16px; }
+    .topbar { margin-bottom: 0; }
+    .app-icon { width: 32px; height: 32px; border-radius: 9px; }
+    .controls button { width: 36px; height: 30px; font-size: 16px; }
+    .controls #volSlider { width: 92px; }
+    h1 { font-size: 19px; margin: 0; }
+    .sub { font-size: 11px; margin-bottom: 8px; }
+    .racers { gap: 6px; margin-bottom: 10px; }
+    .racer-row { padding: 5px 10px; border-radius: 11px; gap: 10px; }
+    .racer-row input { font-size: 15px; }
+    .horse-btn { font-size: 26px; padding: 2px; }
+    .start-btn { padding: 11px; font-size: 17px; border-radius: 12px; }
+    .track { padding: 8px 8px; border-radius: 14px; }
+    .lane { height: 44px; margin: 5px 0; border-radius: 10px; }
+    .jockey { font-size: 30px; }
+    .name-tag { font-size: 11px; top: 3px; left: 8px; }
+    .status { top: -13px; font-size: 15px; }
+    .countdown { font-size: 56px; }
+    /* 모달도 작은 높이에 맞게 */
+    .overlay { padding: 10px; }
+    .modal { padding: 16px 18px; border-radius: 18px; max-width: 380px; }
+    .modal .loser-emoji { font-size: 40px; margin-bottom: 4px; }
+    .modal h2 { font-size: 19px; }
+    .modal .pay { font-size: 20px; margin: 8px 0; }
+    .rank-list { margin: 10px 0; }
+    .rank-item { padding: 6px 10px; font-size: 14px; margin-bottom: 6px; }
+    .modal-btns button { padding: 11px; font-size: 15px; }
+  }
+  /* 아주 낮은 화면(소형 폰 가로)에서 한층 더 압축 */
+  @media (orientation: landscape) and (max-height: 380px) {
+    h1 { font-size: 17px; }
+    .sub { margin-bottom: 5px; }
+    .racers { gap: 4px; margin-bottom: 7px; }
+    .racer-row { padding: 3px 10px; }
+    .lane { height: 38px; margin: 4px 0; }
+    .jockey { font-size: 26px; }
+    .start-btn { padding: 9px; }
+    .countdown { font-size: 46px; }
+  }
 </style>
 </head>
 <body data-theme="day">
+<div id="rotor">
 <div class="app">
   <div class="topbar">
     <img id="appIcon" class="app-icon" src="icon-192.png" alt="쏜다레이스" draggable="false" />
@@ -268,6 +317,7 @@
     </div>
   </div>
 </div>
+</div><!-- /rotor -->
 
 <script>
   // PWA: 서비스워커 등록 (https 또는 localhost에서만 동작)
@@ -276,15 +326,6 @@
       navigator.serviceWorker.register("sw.js").catch(() => {});
     });
   }
-  // 설치형(standalone)에서 가로 모드 잠금 시도 (지원 브라우저에 한함)
-  function lockLandscape() {
-    try {
-      const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-      if (standalone && screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(() => {});
-    } catch (e) {}
-  }
-  window.addEventListener("load", lockLandscape);
-  document.addEventListener("click", lockLandscape, { once: true });
 </script>
 <script>
 (function () {

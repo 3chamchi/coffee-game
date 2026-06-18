@@ -1,5 +1,5 @@
 // 내가 쏜다 레이스 — 오프라인 캐시 서비스워커
-const CACHE = "ssonda-race-v3";
+const CACHE = "ssonda-race-v8";
 const ASSETS = [
   "./",
   "./index.html",

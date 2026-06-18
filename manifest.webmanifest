@@ -1,4 +1,5 @@
 {
+  "id": "ssonda-race-landscape",
   "name": "내가 쏜다 레이스",
   "short_name": "쏜다레이스",
   "description": "꼴찌가 쏜다! 말타기 경마 내기 게임",
@@ -6,7 +7,7 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#74c389",
   "theme_color": "#3f9a47",
   "icons": [
