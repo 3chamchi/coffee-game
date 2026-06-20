@@ -122,6 +122,20 @@
     flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 18px; font-weight: 600;
   }
   .racer-row input::placeholder { color: var(--muted); }
+  .del-btn {
+    flex-shrink: 0; background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 17px; width: 30px; height: 30px;
+    border-radius: 9px; transition: transform .1s, color .15s, background .15s;
+  }
+  .del-btn:hover { color: var(--accent2); background: rgba(239,71,111,0.12); }
+  .del-btn:active { transform: scale(0.85); }
+  .add-btn {
+    width: 100%; padding: 12px; font-size: 16px; font-weight: 700;
+    background: transparent; border: 1.5px dashed var(--row-border); color: var(--muted);
+    border-radius: 16px; cursor: pointer; transition: transform .1s, border-color .15s, color .15s;
+  }
+  .add-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .add-btn:active { transform: scale(0.98); }
 
   .start-btn {
     width: 100%; padding: 18px; font-size: 20px; font-weight: 800;
@@ -235,6 +249,8 @@
     .racer-row { padding: 5px 10px; border-radius: 11px; gap: 10px; }
     .racer-row input { font-size: 15px; }
     .horse-btn { font-size: 26px; padding: 2px; }
+    .del-btn { width: 26px; height: 26px; font-size: 15px; }
+    .add-btn { padding: 8px; font-size: 14px; border-radius: 12px; }
     .start-btn { padding: 11px; font-size: 17px; border-radius: 12px; }
     .track { padding: 6px 8px; border-radius: 14px; }
     .lane { height: 60px; margin: 5px 0; border-radius: 10px; }
@@ -260,6 +276,7 @@
     .sub { font-size: 10px; margin-bottom: 4px; }
     .racers { gap: 4px; margin-bottom: 7px; }
     .racer-row { padding: 3px 10px; }
+    .add-btn { padding: 6px; font-size: 13px; }
     .track { padding: 4px 8px; }
     .lane { height: 50px; margin: 4px 0; }
     .runner { bottom: 4px; }
@@ -334,7 +351,8 @@
 </script>
 <script>
 (function () {
-  const N = 3;
+  const MIN_N = 2, MAX_N = 6;
+  let N = 3;
   const PALETTE = [0, 35, 90, 150, 200, 265, 320]; // 팀 색상(hue)
   let hues = [0, 150, 265];
   let names = ["", "", ""];
@@ -482,6 +500,21 @@
   };
 
   // ===== Setup =====
+  function nextHue() {
+    const used = new Set(hues);
+    for (const h of PALETTE) if (!used.has(h)) return h;   // 미사용 색 우선 → 전원 고유색
+    return PALETTE[hues.length % PALETTE.length];           // (도달 불가: MAX_N < PALETTE.length)
+  }
+  function addRacer() {
+    if (N >= MAX_N) return;
+    names.push(""); hues.push(nextHue()); N++;
+    renderSetup();
+  }
+  function removeRacer(i) {
+    if (N <= MIN_N) return;
+    names.splice(i, 1); hues.splice(i, 1); N--;
+    renderSetup();
+  }
   function renderSetup() {
     const wrap = $("racers");
     wrap.innerHTML = "";
@@ -490,12 +523,21 @@
       row.className = "racer-row";
       row.innerHTML = `
         <button class="horse-btn" data-i="${i}" title="탭하면 색 변경" style="filter:hue-rotate(${hues[i]}deg) saturate(1.5)">🏇</button>
-        <input type="text" data-i="${i}" placeholder="참가자 ${i + 1}" maxlength="12" value="${names[i]}">`;
+        <input type="text" data-i="${i}" placeholder="참가자 ${i + 1}" maxlength="12" value="${names[i]}">
+        ${N > MIN_N ? `<button class="del-btn" data-i="${i}" title="삭제" aria-label="참가자 삭제">✕</button>` : ""}`;
       wrap.appendChild(row);
+    }
+    if (N < MAX_N) {
+      const addBtn = document.createElement("button");
+      addBtn.className = "add-btn"; addBtn.type = "button";
+      addBtn.textContent = "＋ 참가자 추가";
+      addBtn.onclick = addRacer;
+      wrap.appendChild(addBtn);
     }
     wrap.querySelectorAll(".horse-btn").forEach(b => {
       b.onclick = () => { const i = +b.dataset.i; hues[i] = PALETTE[(PALETTE.indexOf(hues[i]) + 1) % PALETTE.length]; renderSetup(); };
     });
+    wrap.querySelectorAll(".del-btn").forEach(b => { b.onclick = () => removeRacer(+b.dataset.i); });
     wrap.querySelectorAll("input").forEach(inp => { inp.oninput = () => { names[+inp.dataset.i] = inp.value; }; });
   }
   const displayName = i => (names[i] || "").trim() || `참가자 ${i + 1}`;
@@ -683,7 +725,7 @@
   // ===== Result =====
   function showResult(orderFinished) {
     const loser = orderFinished[orderFinished.length - 1];
-    const medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+    const medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣"];
     $("loserTitle").textContent = `꼴찌: ${displayName(loser)}`;
     $("payLine").innerHTML = `🏇 <b>${displayName(loser)}</b> 가 쏜다! 💸`;
     const list = $("rankList"); list.innerHTML = "";

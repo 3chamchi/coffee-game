@@ -1,2 +1,9 @@
 .claude/
 .DS_Store
+
+# Node / Playwright (테스트 도구 — 배포 대상 아님)
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
