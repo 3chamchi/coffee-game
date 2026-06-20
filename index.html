@@ -119,15 +119,17 @@
     background: var(--accent); color: #14241a; border-radius: 6px; padding: 1px 3px; font-weight: 800;
   }
   .racer-row input {
-    flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 18px; font-weight: 600;
+    flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 18px; font-weight: 600;
   }
   .racer-row input::placeholder { color: var(--muted); }
   .del-btn {
-    flex-shrink: 0; background: none; border: none; cursor: pointer;
-    color: var(--muted); font-size: 17px; width: 30px; height: 30px;
-    border-radius: 9px; transition: transform .1s, color .15s, background .15s;
+    flex-shrink: 0; -webkit-appearance: none; appearance: none;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;
+    background: var(--input-bg); border: none; cursor: pointer;
+    color: var(--muted); font-size: 15px; width: 30px; height: 30px;
+    border-radius: 50%; transition: transform .1s, color .15s, background .15s;
   }
-  .del-btn:hover { color: var(--accent2); background: rgba(239,71,111,0.12); }
+  .del-btn:hover { color: var(--accent2); background: rgba(239,71,111,0.16); }
   .del-btn:active { transform: scale(0.85); }
   .add-btn {
     width: 100%; padding: 12px; font-size: 16px; font-weight: 700;
@@ -213,7 +215,11 @@
     background: var(--modal-bg); border: 1px solid var(--panel-border); color: var(--text);
     border-radius: 22px; padding: 30px 28px; max-width: 420px; width: 100%; text-align: center;
     box-shadow: 0 30px 80px rgba(0,0,0,0.5); animation: pop .35s cubic-bezier(.2,1.3,.5,1);
+    display: flex; flex-direction: column; overflow: hidden;
+    max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
   }
+  .modal > * { flex-shrink: 0; }
+  .modal .rank-list { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
   @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .modal .loser-emoji { font-size: 64px; margin-bottom: 8px; }
   .modal h2 { margin: 6px 0; font-size: 24px; }
@@ -260,14 +266,14 @@
     .status { top: -10px; font-size: 17px; }      /* 임팩트가 레인 안에 보이도록 */
     .countdown { font-size: 56px; }
     /* 모달도 작은 높이에 맞게 */
-    .overlay { padding: 10px; }
-    .modal { padding: 16px 18px; border-radius: 18px; max-width: 380px; }
-    .modal .loser-emoji { font-size: 40px; margin-bottom: 4px; }
-    .modal h2 { font-size: 19px; }
-    .modal .pay { font-size: 20px; margin: 8px 0; }
-    .rank-list { margin: 10px 0; }
-    .rank-item { padding: 6px 10px; font-size: 14px; margin-bottom: 6px; }
-    .modal-btns button { padding: 11px; font-size: 15px; }
+    .overlay { padding: 8px; }
+    .modal { padding: 14px 18px; border-radius: 18px; max-width: 620px; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); }
+    .modal .loser-emoji { font-size: 34px; margin-bottom: 2px; }
+    .modal h2 { font-size: 18px; }
+    .modal .pay { font-size: 18px; margin: 6px 0; }
+    .rank-list { margin: 8px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+    .rank-item { padding: 6px 10px; font-size: 14px; margin-bottom: 0; }
+    .modal-btns button { padding: 10px; font-size: 15px; }
   }
   /* 아주 낮은 화면(소형 폰 가로)에서 한층 더 압축 */
   @media (orientation: landscape) and (max-height: 380px) {

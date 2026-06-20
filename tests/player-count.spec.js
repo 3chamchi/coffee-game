@@ -68,3 +68,37 @@ test('4명으로 출발하면 레인 4개가 생기고 결과 순위가 4개 표
   await expect(page.locator('#overlay')).toBeVisible({ timeout: 25000 });
   await expect(page.locator('#rankList .rank-item')).toHaveCount(4);
 });
+
+// ---- 모바일 반응형 회귀 테스트 ----
+test.describe('모바일 세로 — 삭제 버튼 레이아웃 (390×844)', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test('삭제(✕) 버튼이 참가자 행 카드 밖으로 넘치지 않는다', async ({ page }) => {
+    const row = page.locator('#racers .racer-row').first();
+    const del = row.locator('.del-btn');
+    await expect(del).toBeVisible();
+    const rb = await row.boundingBox();
+    const db = await del.boundingBox();
+    // 삭제 버튼 오른쪽 끝이 행 카드 오른쪽 끝을 넘지 않아야 한다
+    expect(db.x + db.width).toBeLessThanOrEqual(rb.x + rb.width + 1);
+  });
+});
+
+test.describe('모바일 가로 — 결과 모달 (844×390)', () => {
+  test.use({ viewport: { width: 844, height: 390 }, hasTouch: true });
+
+  test('6명 결과에서도 돌아가기 버튼이 화면 안에 보이고 닫을 수 있다', async ({ page }) => {
+    for (let n = 4; n <= 6; n++) await page.locator('#racers .add-btn').click();
+    await page.locator('#startBtn').click();
+    await expect(page.locator('#overlay')).toBeVisible({ timeout: 30000 });
+    const btn = page.locator('#resetBtn');
+    await expect(btn).toBeVisible();
+    const box = await btn.boundingBox();
+    const vh = page.viewportSize().height;
+    // 버튼 전체가 뷰포트 세로 범위 안에 있어야 한다 (잘리지 않음)
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(vh + 1);
+    await btn.click();
+    await expect(page.locator('#overlay')).toBeHidden();
+  });
+});
